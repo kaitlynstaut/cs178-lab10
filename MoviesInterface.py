@@ -1,27 +1,68 @@
-# name: YOUR NAME HERE
-# date:
+# name: Kaitlyn Staut
+# date: 3-3-2026
 # description: Implementation of CRUD operations with DynamoDB — CS178 Lab 10
-# proposed score: 0 (out of 5) -- if I don't change this, I agree to get 0 points.
+# proposed score: 5 (out of 5)
 
 import boto3
+from boto3.dynamodb.conditions import Attr
 
 # boto3 uses the credentials configured via `aws configure` on EC2
 dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
 table = dynamodb.Table('Movies')
 
+
+"""CREATE NEW MOVIE"""
 def create_movie():
-    """
-    Prompt user for a Movie Title.
-    Add the movie to the database with the title and an empty Ratings list.
-    """
+    title = input("Enter movie title: ").strip()
+
+    response = table.scan(
+        FilterExpression=Attr("Title").eq(title)
+    )
+    items = response.get("Items", [])
+
+    if items:
+        print(f"A movie with that title already exists.")
+        return
+
+    table.put_item(
+        Item={
+            "Title": title,
+            "Ratings": []
+        }
+    )
     print("creating a movie")
 
-def print_all_movies():
-    """
-    Display all movies in the database.
-    """
-    print("display all movies")
 
+"""DISPLAY ALL MOVIES"""
+def print_movie(movie):
+    title = movie.get("Title", "Unknown Title")
+    year = movie.get("Year", "Unknown Year")
+    ratings = movie.get("Ratings", "No ratings")
+    runtime = movie.get("Runtime", "Unkown runtime")
+
+    print(f"  Title  : {title}")
+    print(f"  Year   : {year}")
+    print(f"  Ratings: {ratings}")
+    print(f"  Runtimes: {runtime}")
+    print()
+
+
+def print_all_movies():
+    response = table.scan()
+    items = response.get("Items", [])
+    
+    if not items:
+        print("No movies found. Make sure your DynamoDB table has data.")
+        return
+    
+    print(f"Found {len(items)} movie(s):\n")
+    for movie in items:
+        print_movie(movie)
+
+    print("printing all movies")
+
+
+"""UPDATE RATING"""
 def update_rating():
     """
     Prompt user for a Movie Title.
@@ -30,6 +71,7 @@ def update_rating():
     """
     print("updating rating")
 
+"""DELETE MOVIE"""
 def delete_movie():
     """
     Prompt user for a Movie Title.
@@ -37,6 +79,7 @@ def delete_movie():
     """
     print("deleting movie")
 
+"""QUERY MOVIE"""
 def query_movie():
     """
     Prompt user for a Movie Title.
