@@ -30,7 +30,7 @@ def create_movie():
             "Ratings": []
         }
     )
-    print("creating a movie")
+    print("movie created")
 
 
 """DISPLAY ALL MOVIES"""
@@ -80,11 +80,21 @@ def update_rating():
 
 """DELETE MOVIE"""
 def delete_movie():
-    """
-    Prompt user for a Movie Title.
-    Delete that item from the database.
-    """
-    print("deleting movie")
+    title = input("Enter movie title: ").strip()
+
+    response = table.scan(
+        FilterExpression=Attr("Title").eq(title)
+    )
+    items = response.get("Items", [])
+
+    if not items:
+        print(f"This movie already does not exist.")
+        return
+
+    table.delete_item(
+        Key={"Title": title}
+    )
+    print("movie deleted")
 
 """QUERY MOVIE"""
 def query_movie():
